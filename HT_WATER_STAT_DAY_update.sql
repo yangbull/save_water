@@ -161,3 +161,113 @@ INSERT INTO ht_water_stat_day(
    WHERE a.ip_address = b.ip_addr AND a.rn1 = 1
    GROUP BY b.node_id, a.ip_address;
 COMMIT;
+
+------------------------以下为更新表中历史数据部分（因新加字段无数据）
+DECLARE
+  v_endday VARCHAR2(8);
+  v_date   DATE := SYSDATE - 1;
+BEGIN
+  SELECT MIN(acct_day) INTO v_endday FROM ht_water_stat_day;
+  -- v_endday := '20190911';
+  WHILE v_date >= to_date(v_endday, 'yyyymmdd') LOOP
+    MERGE INTO ht_water_stat_day h
+	USING (SELECT ip_address, to_char(v_date, 'yyyymmdd') acct_day,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '00' THEN water_flow END),0)+
+				   NVL(SUM(CASE WHEN acct_type = -1 AND collect_hour = '23' THEN water_flow END),0) h00_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '01' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '00' THEN water_flow END),0) h01_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '02' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '01' THEN water_flow END),0) h02_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '03' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '02' THEN water_flow END),0) h03_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '04' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '03' THEN water_flow END),0) h04_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '05' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '04' THEN water_flow END),0) h05_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '06' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '05' THEN water_flow END),0) h06_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '07' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '06' THEN water_flow END),0) h07_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '08' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '07' THEN water_flow END),0) h08_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '09' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '08' THEN water_flow END),0) h09_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '10' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '09' THEN water_flow END),0) h10_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '11' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '10' THEN water_flow END),0) h11_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '12' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '11' THEN water_flow END),0) h12_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '13' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '12' THEN water_flow END),0) h13_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '14' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '13' THEN water_flow END),0) h14_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '15' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '14' THEN water_flow END),0) h15_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '16' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '15' THEN water_flow END),0) h16_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '17' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '16' THEN water_flow END),0) h17_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '18' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '17' THEN water_flow END),0) h18_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '19' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '18' THEN water_flow END),0) h19_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '20' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '19' THEN water_flow END),0) h20_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '21' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '20' THEN water_flow END),0) h21_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '22' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '21' THEN water_flow END),0) h22_flow,
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '23' THEN water_flow END),0)-
+				   NVL(SUM(CASE WHEN acct_type = 0 AND collect_hour = '22' THEN water_flow END),0) h23_flow
+			  FROM (SELECT ip_address, SUBSTR(collect_time, 1, 10) collect_day, SUBSTR(collect_time, 12, 2) collect_hour,
+						   DECODE(SUBSTR(collect_time,1,10),to_char(v_date,'yyyy-mm-dd'),positive_flow_sum,-positive_flow_sum) water_flow,
+						   CASE WHEN SUBSTR(collect_time, 1, 10) = to_char(v_date,'yyyy-mm-dd') THEN 0
+								WHEN SUBSTR(collect_time, 1, 10) = to_char(v_date-1,'yyyy-mm-dd') THEN -1
+								WHEN SUBSTR(collect_time, 1, 7) = to_char(add_months(v_date,-1),'yyyy-mm') THEN -3
+								WHEN SUBSTR(collect_time, 1, 4) = to_char(v_date,'yyyy')-1 THEN -6
+						   END acct_type, --账期类型
+						   row_number() OVER(PARTITION BY ip_address, SUBSTR(collect_time, 1, 10) ORDER BY collect_time DESC) rn,
+						   row_number() OVER(PARTITION BY ip_address, SUBSTR(collect_time, 1, 13) ORDER BY collect_time DESC) rn1
+					  FROM ht_water_collection
+					 WHERE collect_time >= to_char(TRUNC(v_date),'yyyy-mm-dd hh24:mi:ss')
+					   AND collect_time < to_char(TRUNC(v_date+1),'yyyy-mm-dd hh24:mi:ss')   --基准日
+						OR collect_time >= to_char(TRUNC(v_date-1),'yyyy-mm-dd hh24:mi:ss')
+					   AND collect_time < to_char(TRUNC(v_date),'yyyy-mm-dd hh24:mi:ss') --基准前一日
+						OR collect_time >= to_char(last_day(add_months(v_date,-1)),'yyyy-mm-dd')
+					   AND collect_time < to_char(TRUNC(v_date+1, 'month'),'yyyy-mm-dd')     --上月最后一天
+						OR collect_time >= (to_char(v_date,'yyyy')-1)||'-12-31'
+					   AND collect_time < to_char(TRUNC(v_date, 'year'),'yyyy-mm-dd')    --去年最后一天
+				   )
+			 WHERE rn1 = 1 GROUP BY ip_address
+		  ) t
+	   ON (h.acct_day = t.acct_day AND h.ip_addr = t.ip_address)
+	 WHEN MATCHED THEN UPDATE
+	  SET h.h00_flow = t.h00_flow,
+		  h.h01_flow = t.h01_flow,
+		  h.h02_flow = t.h02_flow,
+		  h.h03_flow = t.h03_flow,
+		  h.h04_flow = t.h04_flow,
+		  h.h05_flow = t.h05_flow,
+		  h.h06_flow = t.h06_flow,
+		  h.h07_flow = t.h07_flow,
+		  h.h08_flow = t.h08_flow,
+		  h.h09_flow = t.h09_flow,
+		  h.h10_flow = t.h10_flow,
+		  h.h11_flow = t.h11_flow,
+		  h.h12_flow = t.h12_flow,
+		  h.h13_flow = t.h13_flow,
+		  h.h14_flow = t.h14_flow,
+		  h.h15_flow = t.h15_flow,
+		  h.h16_flow = t.h16_flow,
+		  h.h17_flow = t.h17_flow,
+		  h.h18_flow = t.h18_flow,
+		  h.h19_flow = t.h19_flow,
+		  h.h20_flow = t.h20_flow,
+		  h.h21_flow = t.h21_flow,
+		  h.h22_flow = t.h22_flow,
+		  h.h23_flow = t.h23_flow;
+    COMMIT;
+    v_date := v_date - 1;
+  END LOOP;
+END;
