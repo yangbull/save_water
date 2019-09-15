@@ -279,10 +279,12 @@ INSERT INTO a_warn_msg(
             FROM (SELECT ip_address, positive_flow_sum, time_type,
                          row_number() OVER (PARTITION BY ip_address, time_type ORDER BY collect_time DESC) rn
                     FROM (SELECT ip_address, positive_flow_sum, collect_time,
-                                 CASE WHEN SYSDATE-to_date(collect_time,'yyyy-mm-dd hh24:mi:ss')>=1/24 THEN 3
-                                      WHEN SYSDATE-to_date(collect_time,'yyyy-mm-dd hh24:mi:ss')>=0.5/24 THEN 2
+                                 CASE WHEN SYSDATE-to_date(collect_time,'yyyy-mm-dd hh24:mi:ss')
+                                           >=2*&INTERVAL_TIME/3600/24 THEN 3
+                                      WHEN SYSDATE-to_date(collect_time,'yyyy-mm-dd hh24:mi:ss')
+                                           >=&INTERVAL_TIME/3600/24 THEN 2
                                       ELSE 1 END time_type FROM ht_water_collection
-                           WHERE collect_time >= to_char(SYSDATE-1.5/24, 'yyyy-mm-dd hh24:mi:ss'))
+                           WHERE collect_time >= to_char(SYSDATE-3*&INTERVAL_TIME/3600/24, 'yyyy-mm-dd hh24:mi:ss'))
                  ) WHERE rn = 1 GROUP BY ip_address) a,
          (SELECT node_id, ip_addr, install_place, leak_perc FROM a_device WHERE is_warn = '1') w
    WHERE a.ip_address = w.ip_addr AND a.now_flow < a.aim_flow*(1-w.leak_perc/100);
