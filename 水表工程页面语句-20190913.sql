@@ -266,18 +266,24 @@ SELECT t.node_id, p.month_plan, t.month_flow,
 
 --漏水逻辑（注意有2参数，由外部输入）
 INSERT INTO a_warn_msg(
-  type, msg, create_time, ip_addr
-) SELECT '-1' TYPE, w.node_id||'节点'||w.install_place||'漏水', sysdate, ip_address
-    FROM (SELECT ip_address, SUM(decode(time_type,2,positive_flow_sum)) aim_flow,
-                 SUM(decode(time_type,1,positive_flow_sum,-positive_flow_sum)) miner_flow
+  type,
+  msg,
+  create_time,
+  ip_addr
+) SELECT sys_guid(),'2', w.node_id||'节点'||w.install_place||'漏水', ip_address
+    FROM (SELECT ip_address,
+                 SUM(CASE WHEN time_type=2 THEN positive_flow_sum
+                          WHEN time_type=3 THEN -positive_flow_sum END) aim_flow,
+                 SUM(CASE WHEN time_type=1 THEN positive_flow_sum
+                          WHEN time_type=2 THEN -positive_flow_sum END) now_flow
             FROM (SELECT ip_address, positive_flow_sum, time_type,
                          row_number() OVER (PARTITION BY ip_address, time_type ORDER BY collect_time DESC) rn
                     FROM (SELECT ip_address, positive_flow_sum, collect_time,
-                                 CASE WHEN SYSDATE-to_date(collect_time,'yyyy-mm-dd hh24:mi:ss')
-                                   >=&interval_time/3600/24 THEN 2 ELSE 1 END time_type
-                            FROM ht_water_collection
-                           WHERE collect_time >= to_char(SYSDATE-1/24, 'yyyy-mm-dd hh24:mi:ss'))
+                                 CASE WHEN SYSDATE-to_date(collect_time,'yyyy-mm-dd hh24:mi:ss')>=1/24 THEN 3
+                                      WHEN SYSDATE-to_date(collect_time,'yyyy-mm-dd hh24:mi:ss')>=0.5/24 THEN 2
+                                      ELSE 1 END time_type FROM ht_water_collection
+                           WHERE collect_time >= to_char(SYSDATE-1.5/24, 'yyyy-mm-dd hh24:mi:ss'))
                  ) WHERE rn = 1 GROUP BY ip_address) a,
-         (SELECT node_id, ip_addr, install_place, leak_perc FROM a_device WHERE is_warn = 1) w
-   WHERE a.ip_address = w.ip_addr AND a.miner_flow < a.aim_flow*w.leak_perc/100;
+         (SELECT node_id, ip_addr, install_place, leak_perc FROM a_device WHERE is_warn = '1') w
+   WHERE a.ip_address = w.ip_addr AND a.now_flow < a.aim_flow*(1-w.leak_perc/100);
 COMMIT;
