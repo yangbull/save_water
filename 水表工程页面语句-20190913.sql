@@ -107,6 +107,7 @@ INSERT INTO ht_water_stat_day(
          SUM(CASE WHEN to_char(SYSDATE-1, 'dd') = '01' AND acct_type IN (0, -1) AND a.rn = 1 THEN water_flow
                   WHEN acct_type IN (0, -3) AND a.rn = 1 THEN water_flow END) month_flow,
          SUM(CASE WHEN to_char(SYSDATE-1, 'mmdd') = '0101' AND acct_type IN (0, -1) AND a.rn = 1 THEN water_flow
+                  WHEN to_char(SYSDATE-1, 'mm') = '01' AND acct_type IN (0, -3) AND a.rn = 1 THEN water_flow
                   WHEN acct_type IN (0, -6) AND a.rn = 1 THEN water_flow END) year_flow,
          SUM(CASE WHEN acct_type = 0 AND a.rn = 1 THEN water_flow END) accu_flow,
          to_char(SYSDATE-1, 'yyyymmdd') acct_day,
